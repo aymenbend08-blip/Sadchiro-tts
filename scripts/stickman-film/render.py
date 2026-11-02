@@ -25,7 +25,7 @@ OUT = os.path.join(HERE, 'out')
 W, H, FPS = 1080, 1920, 30
 TITLE = 'أنا أمزح معك فقط!'
 FADES = {'shot_l15_home': 0.5, 'shot_l18_end': 0.8, 'shot_l11_g': 0.35, 'shot_l15_word': 0.3}
-IRIS = 0.55   # ink-circle transition when cutting between the conversation and the story world
+IRIS = 0.45   # ink-circle transition when cutting between the conversation and the story world
 
 
 # ------------------------------------------------------------------ audio helper
@@ -168,13 +168,13 @@ def draw_frame(c, edl, audio, T, surfaces):
         _render_shot(sa.getCanvas(), pfn, T - pa, pb - pa, T, audio)
         fx = _render_shot(sb.getCanvas(), fn, t, b - a, T, audio)
         c.drawImage(sa.makeImageSnapshot(), 0, 0)
-        u = (t / IRIS) ** 1.6
-        ring = _ink_ring(40 + u * 1250, T)
+        u = 1 - (1 - t / IRIS) ** 2.2          # opens fast, settles gently
+        ring = _ink_ring(160 + u * 1150, T)
         c.save()
         c.clipPath(ring, doAntiAlias=True)
         c.drawImage(sb.makeImageSnapshot(), 0, 0)
         c.restore()
-        c.drawPath(ring, stroke(INK, 16 * (1 - u) + 3))
+        c.drawPath(ring, stroke(INK, 12 * (1 - u) + 2))
         return fx
     if prev and t < fade:
         pa, pb, pfn = prev
