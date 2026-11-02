@@ -1,0 +1,8 @@
+{
+  "name": "صوتي - تحويل النص إلى صوت فائق الدقة (Sawti AI TTS)",
+  "description": "استوديو احترافي لتحويل النصوص إلى صوت بشري عالي النقاء بتقنيات الذكاء الاصطناعي مع دعم دمج الحوار بين رجل وامرأة بعدة لغات، وأصوات الأطفال، وجميع اللهجات الجزائرية، وتنزيل ملفات WAV.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
