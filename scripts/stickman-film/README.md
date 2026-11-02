@@ -24,3 +24,12 @@ npm run film:render                     # -> scripts/stickman-film/out/ana-amzah
 - `film.py`: المشاهد (المقهى، الجلسة، الفضاء الرمزي، المنزل) وكتل التمثيل المتكررة.
 - `shots.py`: جدول الإخراج الذي يربط كل جملة صوتية باللقطات التي تجسدها.
 - `render.py`: المونتاج والانتقالات والتصيير المتوازي والدمج مع الصوت.
+
+## صوت ElevenLabs (البديل المستخدم حاليًا)
+وُلِّدت الجمل الـ19 في ElevenLabs بنموذج `eleven_v4` داخل الـ flow ‏`fYxIZtlz8T6nhCfwASL2`: المرأة بصوت Wiam، والرجل بصوت Aymen، والراوي بصوت Celil. معرّفات التوليد محفوظة في `elevenlabs_manifest.json`.
+
+بعد تنزيل الملفات باسم `line_00.mp3` … `line_18.mp3` (يحتاج التنزيل إلى السماح بالنطاق `elevenlabsusercontent.com`):
+```bash
+python3 scripts/stickman-film/build_timeline.py <مجلد_الملفات>   # -> out/dialogue.wav + out/timeline.json
+npm run film:render
+```

@@ -1,0 +1,158 @@
+{
+ "flow_id": "fYxIZtlz8T6nhCfwASL2",
+ "model": "eleven_v4",
+ "lines": [
+  {
+   "index": 0,
+   "speaker": "narrator",
+   "voice_id": "BrKeRgI6Ivb2zWjD6qte",
+   "voice": "Celil - Arabic Narrator",
+   "generation_id": "WvvG9g5fgLviWuM6VPcC",
+   "text": "«أنا أمزح معك فقط!»"
+  },
+  {
+   "index": 1,
+   "speaker": "woman",
+   "voice_id": "R5kMoWNNTn84ezIJA53m",
+   "voice": "Wiam – Confident",
+   "generation_id": "bYMnVkcCNThg4JlQu1bi",
+   "text": "هل تعرف ما أكثر شيء يزعجني في بعض الناس؟ أولئك الذين يعتقدون أن السخرية من الآخرين وإحراجهم أمام الناس دليل على خفة الظل والذكاء!"
+  },
+  {
+   "index": 2,
+   "speaker": "man",
+   "voice_id": "LolihHRhcG0w6pX0BI4u",
+   "voice": "Aymen",
+   "generation_id": "5qRGJybjUFjRXI0fBTcG",
+   "text": "ولماذا؟ ربما هم فقط يحبون المزاح وإضحاك من حولهم."
+  },
+  {
+   "index": 3,
+   "speaker": "woman",
+   "voice_id": "R5kMoWNNTn84ezIJA53m",
+   "voice": "Wiam – Confident",
+   "generation_id": "oaWnDgoIJNZCkQIs12aI",
+   "text": "المزاح شيء، وإهانة الآخرين شيء آخر. اليوم كنت في جلسة مع مجموعة من الناس، وكان هناك رجل كلما تحدث أحدهم سخر منه، مرة من شكله، ومرة من طريقة كلامه، ومرة من أمر شخصي يخصه."
+  },
+  {
+   "index": 4,
+   "speaker": "man",
+   "voice_id": "LolihHRhcG0w6pX0BI4u",
+   "voice": "Aymen",
+   "generation_id": "jVDQZ9g9ZBzKAHdFXssP",
+   "text": "ربما لم يكن يقصد الإساءة، فهناك أشخاص اعتادوا هذا النوع من المزاح."
+  },
+  {
+   "index": 5,
+   "speaker": "woman",
+   "voice_id": "R5kMoWNNTn84ezIJA53m",
+   "voice": "Wiam – Confident",
+   "generation_id": "JJVESsHbVIHFhPOyB8Kt",
+   "text": "المشكلة أنه عندما لاحظت انزعاج أحد الحاضرين، واجهته بما يفعل، فرد بكل بساطة: «ما بك؟ أنا أمزح معه فقط!»."
+  },
+  {
+   "index": 6,
+   "speaker": "man",
+   "voice_id": "LolihHRhcG0w6pX0BI4u",
+   "voice": "Aymen",
+   "generation_id": "Ai0hQpOQbDrgsb3kif1n",
+   "text": "هذه العبارة أصبحت مبررًا جاهزًا لكل كلمة جارحة!"
+  },
+  {
+   "index": 7,
+   "speaker": "woman",
+   "voice_id": "R5kMoWNNTn84ezIJA53m",
+   "voice": "Wiam – Confident",
+   "generation_id": "WrQhB2jdgFHwb0zVljqh",
+   "text": "لكن أخبرني، أي مزاح هذا الذي يضحك فيه الجميع، بينما يتمنى الشخص المستهدف لو أن الأرض ابتلعته حتى لا يسمع المزيد؟"
+  },
+  {
+   "index": 8,
+   "speaker": "man",
+   "voice_id": "LolihHRhcG0w6pX0BI4u",
+   "voice": "Aymen",
+   "generation_id": "HrQ3BBJaUccHdmP7SQf1",
+   "text": "معك حق، فليس كل من يضحك أمامك يكون سعيدًا بما تقوله."
+  },
+  {
+   "index": 9,
+   "speaker": "woman",
+   "voice_id": "R5kMoWNNTn84ezIJA53m",
+   "voice": "Wiam – Confident",
+   "generation_id": "zEeZD3ELKzha35gFoYQR",
+   "text": "بالضبط! هناك فرق كبير بين شخص يمتلك روح الدعابة، وشخص يستمتع بالتقليل من قيمة الآخرين. الأول يجعل الجميع يضحكون معه، أما الثاني فيجعل الجميع يضحكون على حساب شخص واحد."
+  },
+  {
+   "index": 10,
+   "speaker": "man",
+   "voice_id": "LolihHRhcG0w6pX0BI4u",
+   "voice": "Aymen",
+   "generation_id": "s4XUoWE1DaZ0YQJ7MrY9",
+   "text": "لكن بعض الناس حساسون أكثر من اللازم، ولا يتقبلون حتى المزاح البسيط."
+  },
+  {
+   "index": 11,
+   "speaker": "woman",
+   "voice_id": "R5kMoWNNTn84ezIJA53m",
+   "voice": "Wiam – Confident",
+   "generation_id": "WuXrQQ0SHXXXYBp7Di5P",
+   "text": "وأنا لا أقول لك لا تمزح! امزح، وأضحك الناس، وانشر البهجة أينما كنت، لكن لا تجعل كرامة الآخرين ثمنًا لضحكتك. ليس كل شخص صامت يعني أنه لم يتأذَّ، وليس كل من ضحك معك يعني أنك لم تجرحه."
+  },
+  {
+   "index": 12,
+   "speaker": "man",
+   "voice_id": "LolihHRhcG0w6pX0BI4u",
+   "voice": "Aymen",
+   "generation_id": "R71D5ZAWKRdmRFDO6zNG",
+   "text": "إذن، قوة الشخصية ليست في امتلاك لسان لاذع؟"
+  },
+  {
+   "index": 13,
+   "speaker": "woman",
+   "voice_id": "R5kMoWNNTn84ezIJA53m",
+   "voice": "Wiam – Confident",
+   "generation_id": "hsu3SCayV6pwTmzVjsF8",
+   "text": "بالتأكيد لا. أحيانًا لا يكون اللسان اللاذع دليلًا على الذكاء، بل على ضعف التربية وقلة احترام الآخرين. الشطارة الحقيقية أن تعرف ماذا تقول، ومتى تقوله، وألا تتجاوز حدودك مع أحد."
+  },
+  {
+   "index": 14,
+   "speaker": "man",
+   "voice_id": "LolihHRhcG0w6pX0BI4u",
+   "voice": "Aymen",
+   "generation_id": "SivCIoRfHZXUc6ZggbHU",
+   "text": "والأصعب أن بعض الناس لا يدركون خطورة كلماتهم إلا عندما يجدون شخصًا يرد عليهم بالطريقة نفسها."
+  },
+  {
+   "index": 15,
+   "speaker": "woman",
+   "voice_id": "R5kMoWNNTn84ezIJA53m",
+   "voice": "Wiam – Confident",
+   "generation_id": "dJOgn6HcRk0DAGlOUNIU",
+   "text": "وهذا ما أقوله دائمًا. عامل الناس باحترام، ولا تختبر صبرهم بحجة أنك تمزح. فقد تنسى أنت الكلمة التي قلتها بعد دقائق، لكن الشخص الذي سمعها قد يتذكرها لسنوات."
+  },
+  {
+   "index": 16,
+   "speaker": "man",
+   "voice_id": "LolihHRhcG0w6pX0BI4u",
+   "voice": "Aymen",
+   "generation_id": "mwMm6RUthg2YQoTK5OYQ",
+   "text": "يبدو أن علينا أن نتعلم كيف نضحك الناس دون أن نجرح أحدًا."
+  },
+  {
+   "index": 17,
+   "speaker": "woman",
+   "voice_id": "R5kMoWNNTn84ezIJA53m",
+   "voice": "Wiam – Confident",
+   "generation_id": "Wh4Mq2b8Vi6L1rTrREpw",
+   "text": "هذا كل ما في الأمر. خفة الظل لا تحتاج إلى إهانة، والمرح لا يحتاج إلى التقليل من الآخرين."
+  },
+  {
+   "index": 18,
+   "speaker": "narrator",
+   "voice_id": "BrKeRgI6Ivb2zWjD6qte",
+   "voice": "Celil - Arabic Narrator",
+   "generation_id": "ZzrIiIj3yJNrI1oRQKYj",
+   "text": " ليس كل من يجرحك صريحًا، وليس كل من يهينك صاحب لسان حاد. هناك فرق كبير بين خفة الظل وسوء الأدب. فلا تجعل عبارة «أنا أمزح معك فقط» غطاءً لكلمات قد تترك جرحًا لا يراه أحد."
+  }
+ ]
+}
