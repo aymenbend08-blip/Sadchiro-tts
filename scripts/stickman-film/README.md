@@ -26,7 +26,7 @@ npm run film:render                     # -> scripts/stickman-film/out/ana-amzah
 - `render.py`: المونتاج والانتقالات والتصيير المتوازي والدمج مع الصوت.
 
 ## صوت ElevenLabs (البديل المستخدم حاليًا)
-وُلِّدت الجمل الـ19 في ElevenLabs بنموذج `eleven_v4` داخل الـ flow ‏`fYxIZtlz8T6nhCfwASL2`: المرأة بصوت Wiam، والرجل بصوت Aymen، والراوي بصوت Celil. معرّفات التوليد محفوظة في `elevenlabs_manifest.json`.
+وُلِّدت الجمل الـ19 في ElevenLabs بنموذج `eleven_v4` داخل الـ flow ‏`fYxIZtlz8T6nhCfwASL2`: المرأة بصوت إخلاص، والرجل بصوت Aymen، والراوي بصوت Celil. معرّفات التوليد محفوظة في `elevenlabs_manifest.json`.
 
 بعد تنزيل الملفات باسم `line_00.mp3` … `line_18.mp3` (يحتاج التنزيل إلى السماح بالنطاق `elevenlabsusercontent.com`):
 ```bash
