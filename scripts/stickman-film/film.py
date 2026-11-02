@@ -20,9 +20,13 @@ def osc(T, freq, phase=0.0):
     return math.sin(T * freq * 2 * math.pi + phase)
 
 
+CAM = {'cx': 540.0, 'cy': 960.0, 'z': 1.0}
+
+
 def camera(c, cx, cy, z, T=0.0, drift=1.0):
     cx += osc(T, 0.07) * 6 * drift
     cy += osc(T, 0.05, 1.3) * 5 * drift
+    CAM.update(cx=cx, cy=cy, z=z)
     c.translate(W_ / 2, H_ / 2)
     c.scale(z, z)
     c.translate(-cx, -cy)
@@ -47,6 +51,61 @@ def vignette(c, strength=0.35):
 def glow(c, x, y, r, color, a):
     sh = skia.GradientShader.MakeRadial((x, y), r, [argb(color, a), argb(color, 0)])
     c.drawCircle(x, y, r, skia.Paint(Shader=sh, AntiAlias=True))
+
+
+def blur_layer(c, sigma):
+    """open a layer whose content is blurred (depth of field); returns True if a layer was opened"""
+    if sigma < 0.6:
+        return False
+    c.saveLayer(paint=skia.Paint(ImageFilter=skia.ImageFilters.Blur(sigma, sigma)))
+    return True
+
+
+def dof_sigma(start=1.5, k=3.2):
+    return max(0.0, (CAM['z'] - start) * k)
+
+
+def light_cone(c, x, y, w_top, x0, x1, y1, color=0xFFFFD27A, a=0.16):
+    path = skia.Path()
+    path.moveTo(x - w_top, y)
+    path.lineTo(x + w_top, y)
+    path.lineTo(x1, y1)
+    path.lineTo(x0, y1)
+    path.close()
+    sh = skia.GradientShader.MakeLinear([(x, y), (x, y1)], [argb(color, a), argb(color, 0)])
+    p = skia.Paint(AntiAlias=True, Shader=sh)
+    p.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 14))
+    c.drawPath(path, p)
+
+
+def dust(c, T, x0, y0, x1, y1, n=36, seed=1, a=0.5):
+    """slow motes floating in the light"""
+    rnd = random.Random(seed)
+    for i in range(n):
+        px, py, sp, ph = rnd.random(), rnd.random(), 0.2 + rnd.random() * 0.6, rnd.random() * 6.28
+        x = x0 + (px * (x1 - x0) + 18 * math.sin(T * sp + ph)) % (x1 - x0)
+        y = y1 - ((py * (y1 - y0) + T * 9 * sp) % (y1 - y0))
+        tw = 0.5 + 0.5 * math.sin(T * 1.7 * sp + ph * 2)
+        c.drawCircle(x, y, 1.6 + 1.6 * sp, fill(0xFFFFF1C8, a * tw))
+
+
+def foreground_leaves(c, T, shift, alpha=1.0):
+    """out-of-focus foreground plant in screen space; parallax via shift"""
+    if alpha <= 0.02:
+        return
+    p = skia.Paint(AntiAlias=True, Color=argb(0x1F2A22, 0.85 * alpha))
+    p.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 14))
+    for k, (bx, by, ang, ln) in enumerate([(-30, 1990, -60, 520), (40, 2010, -40, 600), (120, 2000, -25, 460),
+                                            (1120, 2000, -130, 480), (1060, 2030, -150, 560)]):
+        a = math.radians(ang + 3 * math.sin(T * 0.6 + k))
+        tx, ty = bx + shift + math.cos(a) * ln, by + math.sin(a) * ln
+        path = skia.Path()
+        path.moveTo(bx + shift, by)
+        nx, ny = -math.sin(a) * 70, math.cos(a) * 70
+        mx, my = (bx + shift + tx) / 2, (by + ty) / 2
+        path.quadTo(mx + nx, my + ny, tx, ty)
+        path.quadTo(mx - nx, my - ny, bx + shift, by)
+        c.drawPath(path, p)
 
 
 def blink(T, seed):
@@ -114,6 +173,9 @@ def talk_bg(c, T, dusk=0.0):
     line(c, 0, 1390, W_, 1390, stroke(INK, 8))
     for i in range(-400, W_ + 400, 160):
         line(c, i, 1390, i - 260, H_, stroke(0xFFCDBEA6, 3))
+    c.drawOval(skia.Rect(320, 1360, 1200, 1460), fill(0xFFFFD27A, 0.18))
+    # window light falling on the floor
+    light_cone(c, 315, 650, 205, 420, 900, 1600, 0xFFFFE2B0, 0.10 * (1 - dusk * 0.6))
 
 
 def chair(c, x, floor, f, s=1.75):
@@ -188,7 +250,12 @@ def talk_figures(T, G, w=None, m=None, w_style='open', m_style='open'):
 
 
 def talk_scene(c, T, G, w=None, m=None, dusk=0.0, **kw):
+    opened = blur_layer(c, dof_sigma(1.5, 3.0))
     talk_bg(c, T, dusk)
+    if opened:
+        c.restore()
+    light_cone(c, 760, 590, 60, 470, 1050, 1390, 0xFFFFD27A, 0.20)
+    dust(c, T, 500, 600, 1020, 1380, 40, 3, 0.45)
     chair(c, TALK_W['x'] - 6, 1390, 1)
     chair(c, TALK_M['x'] + 6, 1390, -1)
     pw, pm = talk_figures(T, G, w, m, **kw)
@@ -278,10 +345,19 @@ def gather_scene(c, T, over=None, warmth=0.5, fade=None, hole=None, extra_front=
     fade: dict who -> alpha;  hole: (x, y, r) black hole drawn under a character"""
     over = over or {}
     fade = fade or {}
+    opened = blur_layer(c, dof_sigma(1.3, 3.0))
     gather_bg(c, T, warmth)
+    if opened:
+        c.restore()
+    light_cone(c, 70, 760, 50, -200, 520, 1500, 0xFFFFC56B, 0.13 + 0.08 * warmth)
+    dust(c, T, 0, 760, 480, 1450, 30, 7, 0.4)
     order = ['c1', 'v3', 'c2', 'woman', 'c3']
+    front_focus = CAM['cy'] > 1270 and CAM['z'] > 1.6
+    opened = blur_layer(c, dof_sigma(1.6, 2.6) if front_focus else 0)
     for who in order:
         _draw_g(c, who, T, over, fade)
+    if opened:
+        c.restore()
     if hole:
         hx, hy, hr = hole
         if hr > 1:

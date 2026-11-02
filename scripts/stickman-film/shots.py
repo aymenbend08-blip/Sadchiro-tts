@@ -25,6 +25,7 @@ def talk_shot(cam_a, cam_b=None, w=None, m=None, dusk=0.0, warm=0.0, cool=0.0, *
         mm = m(t, D) if callable(m) else m
         talk_scene(c, T, G, ww, mm, dusk=dusk, **kw)
         c.restore()
+        foreground_leaves(c, T, -(CAM['cx'] - 540) * 0.5, clamp(1.6 - CAM['z']) * 0.9)
         overlay(c, WARM, warm)
         overlay(c, COOL, cool)
         vignette(c, 0.3)
@@ -570,3 +571,29 @@ DIRECTION = {
     17: [(0.4, shot_l17_w), (0.6, shot_l17_g)],
     18: [(0.62, shot_l18_pair), (0.38, shot_l18_end)],
 }
+
+
+# ---------------------------------------------------------------- per-shot post effects
+# desat: 0..1 drains colour (the frozen moment), shake: camera shake in px, punch: quick zoom pulse
+def _fx_l5(t, D):
+    freeze = seg(t, D * 0.62, D * 0.68) * (1 - seg(t, D * 0.9, D))
+    return dict(desat=0.75 * freeze, shake=6 * seg(t, D * 0.38, D * 0.42) * (1 - seg(t, D * 0.42, D * 0.5)),
+                punch=0.06 * seg(t, D * 0.6, D * 0.64) * (1 - seg(t, D * 0.64, D * 0.8)))
+
+
+FX = {
+    'shot_l5_wide': _fx_l5,
+    'shot_l5_v1': lambda t, D: dict(desat=0.55 * (1 - seg(t, D * 0.6, D))),
+    'shot_l7': lambda t, D: dict(desat=0.45 * seg(t, D * 0.5, D * 0.62) * (1 - seg(t, D * 0.86, D)),
+                                 shake=3 * seg(t, D * 0.5, D * 0.55) * (1 - seg(t, D * 0.55, D * 0.66))),
+    'shot_l2_gather': lambda t, D: dict(shake=4 * seg(t, D * 0.35, D * 0.38) * (1 - seg(t, D * 0.38, D * 0.5))),
+    'shot_l15_word': lambda t, D: dict(shake=5 * seg(t, D * 0.56, D * 0.6) * (1 - seg(t, D * 0.6, D * 0.72)),
+                                       desat=0.3),
+    'shot_l15_home': lambda t, D: dict(desat=0.25 * (1 - seg(t, D * 0.8, D))),
+    'shot_l9_split': lambda t, D: dict(punch=0.04 * (1 - seg(t, 0, 0.5))),
+}
+
+# shots that belong to the conversation; everything else is the story world
+TALK_SHOTS = {'shot_title', 'shot_l1_close_w', 'shot_l2_talk', 'shot_l3_w', 'shot_l4_m', 'shot_l6', 'shot_l8_m', 'shot_l9_w',
+              'shot_l10_m', 'shot_l11_w', 'shot_l12', 'shot_l13_w', 'shot_l14_m', 'shot_l15_w', 'shot_l16', 'shot_l17_w',
+              'shot_l18_end'}

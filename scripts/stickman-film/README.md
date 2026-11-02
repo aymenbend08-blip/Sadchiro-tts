@@ -33,3 +33,13 @@ npm run film:render                     # -> scripts/stickman-film/out/ana-amzah
 python3 scripts/stickman-film/build_timeline.py <مجلد_الملفات>   # -> out/dialogue.wav + out/timeline.json
 npm run film:render
 ```
+
+## من تسجيل كامل واحد
+إذا كان الحوار كله في ملف واحد:
+```bash
+python3 scripts/stickman-film/align_recording.py full_dialogue.wav   # يحدد بداية كل جملة ونهايتها من الوقفات وحدّة الصوت
+npm run film:render
+```
+
+## التشطيب البصري
+عمق ميدان (تمويه الخلفية في اللقطات القريبة)، ومخاريط ضوء وغبار عائم، وظلال تحت الشخصيات، واهتزاز خفيف للخطوط كالرسم اليدوي، وانتقالات دائرية بالحبر بين عالم الحوار وعالم القصة، وتجميد مع سحب الألوان واهتزاز للكاميرا في اللحظات الحاسمة، ثم تدرّج لوني وتوهّج وحبيبات فيلم وملمس ورق.

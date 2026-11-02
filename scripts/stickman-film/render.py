@@ -16,13 +16,16 @@ import skia
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from rig import argb, PAPER, clamp  # noqa: E402
-from shots import DIRECTION  # noqa: E402
+import random
+import numpy as np
+from rig import argb, PAPER, clamp, BOIL, INK, stroke  # noqa: E402
+from shots import DIRECTION, FX, TALK_SHOTS  # noqa: E402
 
 OUT = os.path.join(HERE, 'out')
 W, H, FPS = 1080, 1920, 30
 TITLE = 'أنا أمزح معك فقط!'
-FADES = {'shot_l15_home': 0.5, 'shot_l18_end': 0.8, 'shot_l11_g': 0.35, 'shot_l15_word': 0.3, 'shot_l1_gathering': 0.25}
+FADES = {'shot_l15_home': 0.5, 'shot_l18_end': 0.8, 'shot_l11_g': 0.35, 'shot_l15_word': 0.3}
+IRIS = 0.55   # ink-circle transition when cutting between the conversation and the story world
 
 
 # ------------------------------------------------------------------ audio helper
@@ -62,9 +65,18 @@ class Audio:
         if self._title is None:
             self._title = make_title()
         img = self._title
+        x0 = (W - img.width()) / 2
+        reveal = clamp(alpha * 1.4)
+        c.save()
+        c.clipRect(skia.Rect(x0 + img.width() * (1 - reveal), y - 20, x0 + img.width() + 20, y + img.height() + 20))
+        sc = 1.0 + 0.04 * (1 - reveal)
+        c.translate(W / 2, y + img.height() / 2)
+        c.scale(sc, sc)
+        c.translate(-W / 2, -(y + img.height() / 2))
         p = skia.Paint(AntiAlias=True)
-        p.setAlphaf(alpha)
-        c.drawImage(img, (W - img.width()) / 2, y, skia.SamplingOptions(skia.FilterMode.kLinear), p)
+        p.setAlphaf(clamp(alpha * 2))
+        c.drawImage(img, x0, y, skia.SamplingOptions(skia.FilterMode.kLinear), p)
+        c.restore()
 
 
 def make_title():
@@ -114,30 +126,126 @@ def find_shot(edl, T):
     return len(edl) - 1
 
 
+def _render_shot(c, fn, t, D, T, audio):
+    fx = FX.get(fn.__name__, lambda t, D: {})(t, D)
+    c.save()
+    sh, pu = fx.get('shake', 0), fx.get('punch', 0)
+    if sh:
+        r = random.Random(int(T * 30))
+        c.translate(r.uniform(-sh, sh), r.uniform(-sh, sh))
+    if pu:
+        c.translate(W / 2, H / 2)
+        c.scale(1 + pu, 1 + pu)
+        c.translate(-W / 2, -H / 2)
+    fn(c, t, D, T, audio)
+    c.restore()
+    return fx
+
+
+def _ink_ring(r, T):
+    path = skia.Path()
+    n = 90
+    for i in range(n + 1):
+        a = i / n * 2 * math.pi
+        rr = r * (1 + 0.035 * math.sin(a * 7 + T * 3) + 0.02 * math.sin(a * 13 - T * 5))
+        x, y = W / 2 + math.cos(a) * rr, H / 2 + math.sin(a) * rr
+        path.moveTo(x, y) if i == 0 else path.lineTo(x, y)
+    path.close()
+    return path
+
+
 def draw_frame(c, edl, audio, T, surfaces):
+    BOIL['t'] = int(T * 12)
     k = find_shot(edl, T)
     a, b, fn = edl[k]
     t = T - a
     fade = FADES.get(fn.__name__, 0.0)
-    if k > 0 and t < fade:
-        pa, pb, pfn = edl[k - 1]
+    prev = edl[k - 1] if k > 0 else None
+    world_change = prev is not None and ((prev[2].__name__ in TALK_SHOTS) != (fn.__name__ in TALK_SHOTS))
+    if prev and world_change and t < IRIS:
+        pa, pb, pfn = prev
         sa, sb = surfaces
-        ca = sa.getCanvas()
-        ca.save()
-        pfn(ca, T - pa, pb - pa, T, audio)
-        ca.restore()
-        cb = sb.getCanvas()
-        cb.save()
-        fn(cb, t, b - a, T, audio)
-        cb.restore()
+        _render_shot(sa.getCanvas(), pfn, T - pa, pb - pa, T, audio)
+        fx = _render_shot(sb.getCanvas(), fn, t, b - a, T, audio)
+        c.drawImage(sa.makeImageSnapshot(), 0, 0)
+        u = (t / IRIS) ** 1.6
+        ring = _ink_ring(40 + u * 1250, T)
+        c.save()
+        c.clipPath(ring, doAntiAlias=True)
+        c.drawImage(sb.makeImageSnapshot(), 0, 0)
+        c.restore()
+        c.drawPath(ring, stroke(INK, 16 * (1 - u) + 3))
+        return fx
+    if prev and t < fade:
+        pa, pb, pfn = prev
+        sa, sb = surfaces
+        _render_shot(sa.getCanvas(), pfn, T - pa, pb - pa, T, audio)
+        fx = _render_shot(sb.getCanvas(), fn, t, b - a, T, audio)
         c.drawImage(sa.makeImageSnapshot(), 0, 0)
         p = skia.Paint()
         p.setAlphaf(clamp(t / fade))
         c.drawImage(sb.makeImageSnapshot(), 0, 0, skia.SamplingOptions(), p)
-    else:
-        c.save()
-        fn(c, t, b - a, T, audio)
-        c.restore()
+        return fx
+    return _render_shot(c, fn, t, b - a, T, audio)
+
+
+# ------------------------------------------------------------------ finishing (grade, bloom, grain, paper)
+class Finisher:
+    def __init__(self):
+        rnd = np.random.default_rng(7)
+        self.grain = []
+        for i in range(6):
+            n = (rnd.normal(0.5, 0.18, (480, 270)) * 255).clip(0, 255).astype(np.uint8)
+            rgba = np.dstack([n, n, n, np.full_like(n, 255)])
+            self.grain.append(skia.Image.fromarray(rgba, colorType=skia.kRGBA_8888_ColorType))
+        low = rnd.normal(0, 1, (60, 34))
+        low = (low - low.min()) / (low.max() - low.min())
+        paper = (200 + 55 * low).astype(np.uint8)
+        self.paper = skia.Image.fromarray(np.dstack([paper, paper, (paper * 0.97).astype(np.uint8), np.full_like(paper, 255)]),
+                                          colorType=skia.kRGBA_8888_ColorType)
+        self.small = skia.Surface(270, 480)
+        self.lin = skia.SamplingOptions(skia.FilterMode.kLinear)
+
+    @staticmethod
+    def _grade(desat):
+        # gentle filmic grade: lift blacks a little, warm highlights; desat lerps toward luma
+        s = 1 - desat
+        lr, lg, lb = 0.2126, 0.7152, 0.0722
+        m = [lr * (1 - s) + s, lg * (1 - s), lb * (1 - s), 0, 0,
+             lr * (1 - s), lg * (1 - s) + s, lb * (1 - s), 0, 0,
+             lr * (1 - s), lg * (1 - s), lb * (1 - s) + s, 0, 0,
+             0, 0, 0, 1, 0]
+        con = 1.06
+        off = (1 - con) * 0.5
+        for r in range(3):
+            for k in range(3):
+                m[r * 5 + k] *= con
+            m[r * 5 + 4] = off + (0.012 if r == 0 else (0.004 if r == 1 else -0.01))
+        return skia.ColorFilters.Matrix(m)
+
+    def apply(self, surf, fx, T):
+        c = surf.getCanvas()
+        img = surf.makeImageSnapshot()
+        # colour grade (+ optional desaturation)
+        p = skia.Paint(ColorFilter=self._grade(fx.get('desat', 0.0)))
+        c.drawImage(img, 0, 0, self.lin, p)
+        # bloom: bright parts, blurred at quarter resolution, screened back
+        img = surf.makeImageSnapshot()
+        sc = self.small.getCanvas()
+        sc.clear(skia.ColorBLACK)
+        bright = skia.ColorFilters.Matrix([1.6, 0, 0, 0, -0.95, 0, 1.6, 0, 0, -0.95, 0, 0, 1.6, 0, -0.95, 0, 0, 0, 1, 0])
+        sc.drawImageRect(img, skia.Rect(0, 0, 270, 480), self.lin,
+                         skia.Paint(ColorFilter=bright, ImageFilter=skia.ImageFilters.Blur(9, 9)))
+        bp = skia.Paint(BlendMode=skia.BlendMode.kScreen)
+        bp.setAlphaf(0.55)
+        c.drawImageRect(self.small.makeImageSnapshot(), skia.Rect(0, 0, W, H), self.lin, bp)
+        # paper texture + film grain
+        pp = skia.Paint(BlendMode=skia.BlendMode.kMultiply)
+        pp.setAlphaf(0.22)
+        c.drawImageRect(self.paper, skia.Rect(0, 0, W, H), self.lin, pp)
+        gp = skia.Paint(BlendMode=skia.BlendMode.kOverlay)
+        gp.setAlphaf(0.10)
+        c.drawImageRect(self.grain[int(T * 24) % 6], skia.Rect(0, 0, W, H), skia.SamplingOptions(), gp)
 
 
 # ------------------------------------------------------------------ rendering
@@ -147,14 +255,16 @@ def render_chunk(args):
     edl = build_edl(audio)
     surf = skia.Surface(W, H)
     surfaces = (skia.Surface(W, H), skia.Surface(W, H))
+    fin = Finisher()
     ff = subprocess.Popen(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'bgra',
                            '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-', '-c:v', 'libx264', '-preset', 'medium',
-                           '-crf', '19', '-pix_fmt', 'yuv420p', path], stdin=subprocess.PIPE)
+                           '-crf', '17', '-pix_fmt', 'yuv420p', path], stdin=subprocess.PIPE)
     for f in range(f0, f1):
         T = f / FPS
         c = surf.getCanvas()
         c.clear(argb(PAPER))
-        draw_frame(c, edl, audio, T, surfaces)
+        fx = draw_frame(c, edl, audio, T, surfaces) or {}
+        fin.apply(surf, fx, T)
         ff.stdin.write(surf.toarray().tobytes())
     ff.stdin.close()
     ff.wait()
@@ -215,6 +325,7 @@ def main():
     if args.stills:
         surf = skia.Surface(W, H)
         surfaces = (skia.Surface(W, H), skia.Surface(W, H))
+        fin = Finisher()
         for tok in args.stills.split(','):
             if ':' in tok:   # line:fraction
                 li, fr = tok.split(':')
@@ -224,7 +335,8 @@ def main():
                 T = float(tok)
             c = surf.getCanvas()
             c.clear(argb(PAPER))
-            draw_frame(c, edl, audio, T, surfaces)
+            fx = draw_frame(c, edl, audio, T, surfaces) or {}
+            fin.apply(surf, fx, T)
             p = os.path.join(OUT, f'still_{tok.replace(":", "_")}.png')
             surf.makeImageSnapshot().save(p, skia.kPNG)
             print(p)

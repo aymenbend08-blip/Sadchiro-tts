@@ -6,6 +6,16 @@ INK = 0xFF1C1B1A
 PAPER = 0xFFF5EFE4
 
 
+BOIL = {'t': 0}   # set by the renderer each frame: hand-drawn line "boil" at 12 fps
+
+
+def _hash(*k):
+    h = 2166136261
+    for v in k:
+        h = ((h ^ (int(v) & 0xFFFFFFFF)) * 16777619) & 0xFFFFFFFF
+    return (h / 0xFFFFFFFF) - 0.5
+
+
 def clamp(v, a=0.0, b=1.0):
     return a if v < a else b if v > b else v
 
@@ -120,9 +130,19 @@ def draw_figure(c, who, p):
 
     sit = clamp(p['sit'])
     x0, y0 = p['x'], p['y'] - p['hop']
+    # soft contact shadow on the floor (drawn before the figure, unscaled by hop)
+    sh = skia.Paint(AntiAlias=True, Color=argb(0x2A1E14, 0.22 * alpha))
+    sh.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 7 * s))
+    c.drawOval(skia.Rect(p['x'] - (46 + 20 * sit) * s, p['y'] - 7 * s, p['x'] + (46 + 34 * sit) * s * (1 if f > 0 else 1), p['y'] + 7 * s), sh)
+
     c.save()
     c.translate(x0, y0)
     c.scale(s, s)
+    seed = sum(map(ord, who))
+    bt = BOIL['t']
+
+    def J(pt, k):   # tiny per-joint jitter that changes 12 times a second
+        return (pt[0] + 1.3 * _hash(seed, k, bt), pt[1] + 1.3 * _hash(seed, k + 50, bt))
 
     hip_y = lerp(-112, -62, sit)
     H = (0.0, hip_y)
@@ -138,6 +158,7 @@ def draw_figure(c, who, p):
         K = (H[0] + d1[0] * 56, H[1] + d1[1] * 56)
         d2 = _dir(a1 + a2, f)
         F = (K[0] + d2[0] * 54, K[1] + d2[1] * 54)
+        K = J(K, a1 * 3)
         poly(c, [H, K, F], ink)
         line(c, F[0], F[1], F[0] + f * 12, F[1], ink)
 
@@ -146,6 +167,8 @@ def draw_figure(c, who, p):
         E = (S[0] + d1[0] * 46, S[1] + d1[1] * 46)
         d2 = _dir(a1 + a2, f)
         Hd = (E[0] + d2[0] * 44, E[1] + d2[1] * 44)
+        E = J(E, 7 if front else 9)
+        Hd = J(Hd, 11 if front else 13)
         poly(c, [S, E, Hd], ink)
         c.drawCircle(Hd[0], Hd[1], 5.5, fill(INK, alpha))
         if p['palms'] > 0.05:
@@ -173,6 +196,13 @@ def draw_figure(c, who, p):
     c.drawCircle(0, 0, R, stroke(INK, 6, alpha))
     draw_face(c, d, p, turn, alpha)
     draw_hair_front(c, d, turn, alpha)
+    if p['mouth'] == 'laugh' and p['mopen'] > 0.45:   # little laugh strokes around the head
+        lp = stroke(INK, 3.5, alpha * clamp((p['mopen'] - 0.45) * 3))
+        for k, ang in enumerate((-35, -10, 15)):
+            for side in (-1, 1):
+                a = math.radians(ang)
+                r0, r1 = 36 + 2 * _hash(seed, k, bt), 48 + 3 * _hash(seed, k + 9, bt)
+                line(c, side * math.cos(a) * r0, math.sin(a) * r0 - 4, side * math.cos(a) * r1, math.sin(a) * r1 - 4, lp)
     c.restore()
 
     arm(p['fa1'], p['fa2'], True)
